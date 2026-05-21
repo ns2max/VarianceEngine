@@ -106,8 +106,10 @@ class VarianceEngineModel(nn.Module):
         print(f"Loading {musicgen_name}...")
         mg = MusicGen.get_pretrained(musicgen_name, device=device)
 
-        # Freeze everything first — LoRA and conditioner unfreeze selectively
-        for p in mg.parameters():
+        # Freeze all components first — LoRA and conditioner unfreeze selectively
+        for p in mg.lm.parameters():
+            p.requires_grad_(False)
+        for p in mg.compression_model.parameters():
             p.requires_grad_(False)
 
         # ------------------------------------------------------------------
