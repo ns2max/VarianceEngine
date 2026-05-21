@@ -181,9 +181,9 @@ class VarianceEngineModel(nn.Module):
             target_suffixes=target_modules,
         )
 
-        print_parameter_summary(self, "VarianceEngine (full model)")
-        print_parameter_summary(self.conditioner, "AudioEmbeddingConditioner")
         print_parameter_summary(self.transformer, "Transformer (after LoRA)")
+        print_parameter_summary(self.conditioner, "AudioEmbeddingConditioner")
+        print_parameter_summary(self, "VarianceEngine (full model)")
 
     # ------------------------------------------------------------------
     # Dimension inference helpers

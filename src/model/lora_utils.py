@@ -79,11 +79,12 @@ class LoRALinear(nn.Module):
 
         in_features  = linear.in_features
         out_features = linear.out_features
+        # Must be on the same device as the wrapped layer.
+        # lora_A/B are always float32 for numerical stability even in bf16 training.
+        device = linear.weight.device
 
-        # Adapter matrices — always float32 for numerical stability,
-        # even when the main model runs in bf16.
-        self.lora_A = nn.Linear(in_features, rank, bias=False)
-        self.lora_B = nn.Linear(rank, out_features, bias=False)
+        self.lora_A = nn.Linear(in_features, rank, bias=False).to(device)
+        self.lora_B = nn.Linear(rank, out_features, bias=False).to(device)
         self.dropout = nn.Dropout(p=dropout)
 
         # Kaiming uniform init for A (same as nn.Linear default)

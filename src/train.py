@@ -206,7 +206,11 @@ class CheckpointManager:
                 "val_loss": val_loss,
                 "conditioner_state": model.conditioner.state_dict(),
                 "lora_state": {
-                    k: v for k, v in model.transformer.state_dict().items()
+                    k: v for k, v in (
+                        model.transformer.module
+                        if isinstance(model.transformer, torch.nn.DataParallel)
+                        else model.transformer
+                    ).state_dict().items()
                     if "lora_A" in k or "lora_B" in k
                 },
                 "optimizer_state": optimizer.state_dict(),
@@ -251,7 +255,12 @@ class CheckpointManager:
 
         ckpt = torch.load(ckpt_path, map_location=device)
         model.conditioner.load_state_dict(ckpt["conditioner_state"])
-        model.transformer.load_state_dict(ckpt["lora_state"], strict=False)
+        transformer = (
+            model.transformer.module
+            if isinstance(model.transformer, torch.nn.DataParallel)
+            else model.transformer
+        )
+        transformer.load_state_dict(ckpt["lora_state"], strict=False)
         optimizer.load_state_dict(ckpt["optimizer_state"])
         scheduler.load_state_dict(ckpt["scheduler_state"])
         step = ckpt["step"]
@@ -398,6 +407,26 @@ def train(cfg: TrainConfig) -> None:
         device=device,
     )
 
+    # ------------------------------------------------------------------
+    # Multi-GPU (DataParallel)
+    # ------------------------------------------------------------------
+    # Two GPUs detected: RTX 4090 (cuda:0) + RTX 3090 (cuda:1).
+    # DataParallel splits each batch across both GPUs and averages gradients.
+    # The primary GPU (cuda:0) holds the model; replicas are created per step.
+    #
+    # Limitation: DataParallel does not parallelise frozen parameters efficiently
+    # (they are still replicated). DDP (torchrun) would be more memory-efficient
+    # but requires a multi-process launch. DataParallel is sufficient here given
+    # the small number of trainable parameters (~9.6M out of 1.9B).
+    #
+    # Note: model.compression_model and model.conditioner must stay on cuda:0
+    # (the primary device) because they are called outside the DataParallel
+    # forward. Only the transformer (the DP-wrapped component) is distributed.
+    n_gpus = torch.cuda.device_count()
+    if n_gpus > 1:
+        print(f"\nFound {n_gpus} GPUs — wrapping transformer with DataParallel.")
+        model.transformer = torch.nn.DataParallel(model.transformer)
+
     if cfg.gradient_checkpointing:
         # Enable gradient checkpointing on the transformer backbone.
         # audiocraft's StreamingTransformer supports gradient checkpointing
@@ -421,7 +450,12 @@ def train(cfg: TrainConfig) -> None:
     # is randomly initialised and must converge faster than the LoRA adapters
     # which fine-tune pre-trained attention weights.
     conditioner_params = list(model.conditioner.parameters())
-    lora_params = [p for p in model.transformer.parameters() if p.requires_grad]
+    _transformer = (
+        model.transformer.module
+        if isinstance(model.transformer, torch.nn.DataParallel)
+        else model.transformer
+    )
+    lora_params = [p for p in _transformer.parameters() if p.requires_grad]
 
     optimizer = torch.optim.AdamW(
         [
