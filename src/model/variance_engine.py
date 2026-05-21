@@ -228,7 +228,9 @@ class VarianceEngineModel(nn.Module):
         codes : Tensor[B, n_q, T_frames]
             Discrete token indices per codebook.
         """
-        codes, _ = self.compression_model.encode(audio)
+        # fp32 required: EnCodec LSTM does not support bf16 (see conditioning.py)
+        with torch.cuda.amp.autocast(enabled=False):
+            codes, _ = self.compression_model.encode(audio.float())
         return codes
 
     @torch.no_grad()

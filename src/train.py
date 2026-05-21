@@ -285,8 +285,9 @@ def run_validation(
         var_audio = batch["var_audio"].to(device)
         attention_mask = batch["attention_mask"].to(device)
 
-        # Encode variation to codes
-        var_codes, _ = model.compression_model.encode(var_audio)
+        # Encode variation to codes (fp32: EnCodec LSTM does not support bf16)
+        with torch.cuda.amp.autocast(enabled=False):
+            var_codes, _ = model.compression_model.encode(var_audio.float())
 
         with autocast(dtype=torch.bfloat16, enabled=use_bf16):
             logits = model(gt_audio, var_codes, attention_mask)
@@ -473,9 +474,11 @@ def train(cfg: TrainConfig) -> None:
 
             # ----------------------------------------------------------
             # Encode variation to EnCodec discrete codes (frozen codec)
+            # fp32 required: EnCodec LSTM does not support bf16
             # ----------------------------------------------------------
             with torch.no_grad():
-                var_codes, _ = model.compression_model.encode(var_audio)
+                with torch.cuda.amp.autocast(enabled=False):
+                    var_codes, _ = model.compression_model.encode(var_audio.float())
                 # var_codes: (B, n_q, T_frames)
 
             # ----------------------------------------------------------

@@ -101,8 +101,12 @@ class AudioEmbeddingConditioner(nn.Module):
         Tensor[B, T_frames, D_model]
         """
         with torch.no_grad():
-            # (B, D_enc, T_frames) — encoder is frozen, no grad needed
-            enc = self.encoder(gt_audio)
+            # Force fp32: EnCodec's SEANetEncoder contains an LSTM layer whose
+            # CUDA kernel (_thnn_fused_lstm_cell_cuda) does not support bf16.
+            # The outer autocast context in the training loop would otherwise
+            # cast inputs to bf16 and cause a runtime error.
+            with torch.cuda.amp.autocast(enabled=False):
+                enc = self.encoder(gt_audio.float())  # (B, D_enc, T_frames)
 
         # (B, T_frames, D_enc)
         enc = enc.transpose(1, 2)
