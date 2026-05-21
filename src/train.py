@@ -58,7 +58,7 @@ import torch
 import torch.nn as nn
 import yaml
 from torch.cuda.amp import autocast
-from transformers import get_cosine_schedule_with_warmup
+from torch.optim.lr_scheduler import LambdaLR
 from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -297,6 +297,38 @@ def run_validation(
 
     model.train()
     return total_loss / max(total_batches, 1)
+
+
+# ---------------------------------------------------------------------------
+# LR schedule (pure PyTorch — avoids transformers version dependency)
+# ---------------------------------------------------------------------------
+
+def get_cosine_schedule_with_warmup(
+    optimizer: torch.optim.Optimizer,
+    num_warmup_steps: int,
+    num_training_steps: int,
+    min_lr_ratio: float = 0.0,
+) -> LambdaLR:
+    """Cosine decay with linear warmup, implemented via LambdaLR.
+
+    Identical behaviour to transformers.get_cosine_schedule_with_warmup
+    but has no transformers dependency.
+
+    During warmup (steps 0 → num_warmup_steps): lr scales linearly 0 → base_lr.
+    After warmup: lr follows cosine decay from base_lr → min_lr_ratio * base_lr.
+
+    min_lr_ratio=0.0 means LR decays to zero at num_training_steps.
+    """
+    def lr_lambda(current_step: int) -> float:
+        if current_step < num_warmup_steps:
+            return float(current_step) / float(max(1, num_warmup_steps))
+        progress = float(current_step - num_warmup_steps) / float(
+            max(1, num_training_steps - num_warmup_steps)
+        )
+        cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
+        return max(min_lr_ratio, cosine)
+
+    return LambdaLR(optimizer, lr_lambda)
 
 
 # ---------------------------------------------------------------------------
