@@ -1,0 +1,712 @@
+{
+  "seed": 42,
+  "ratios": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "counts": {
+    "train_patterns": 132,
+    "val_patterns": 20,
+    "test_patterns": 20
+  },
+  "train": [
+    {
+      "artist_id": 40,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 40,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 10
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 11
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 10
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 55,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 55,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 0
+    }
+  ],
+  "val": [
+    {
+      "artist_id": 40,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 55,
+      "pattern_id": 3
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 7
+    }
+  ],
+  "test": [
+    {
+      "artist_id": 40,
+      "pattern_id": 10
+    },
+    {
+      "artist_id": 41,
+      "pattern_id": 9
+    },
+    {
+      "artist_id": 42,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 43,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 44,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 45,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 46,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 47,
+      "pattern_id": 6
+    },
+    {
+      "artist_id": 48,
+      "pattern_id": 5
+    },
+    {
+      "artist_id": 49,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 50,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 51,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 52,
+      "pattern_id": 4
+    },
+    {
+      "artist_id": 53,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 54,
+      "pattern_id": 8
+    },
+    {
+      "artist_id": 55,
+      "pattern_id": 0
+    },
+    {
+      "artist_id": 56,
+      "pattern_id": 2
+    },
+    {
+      "artist_id": 57,
+      "pattern_id": 7
+    },
+    {
+      "artist_id": 58,
+      "pattern_id": 1
+    },
+    {
+      "artist_id": 59,
+      "pattern_id": 2
+    }
+  ],
+  "pair_counts": {
+    "train": 0,
+    "val": 0,
+    "test": 0
+  }
+}
