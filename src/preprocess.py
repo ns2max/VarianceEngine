@@ -56,6 +56,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import soundfile as sf
 import torchaudio
 import torchaudio.functional as F
 import torch
@@ -207,16 +208,20 @@ def preprocess_file(
     The write uses soundfile backend (via torchaudio) with 16-bit PCM output
     for compatibility with downstream audio tools.
     """
-    waveform, sr = torchaudio.load(src_path, backend="soundfile")
+    # Use soundfile directly to avoid torchaudio backend issues (torchcodec
+    # became the default in torchaudio >=2.4 and may not be installed).
+    audio_np, sr = sf.read(src_path, dtype="float32", always_2d=False)
+    if audio_np.ndim == 1:
+        waveform = torch.from_numpy(audio_np).unsqueeze(0)   # (1, T)
+    else:
+        waveform = torch.from_numpy(audio_np.T)              # (C, T)
 
     original_duration_s = waveform.shape[-1] / sr
     peak_before = float(waveform.abs().max())
 
-    # Ensure mono
+    # Ensure mono (mix down if multi-channel)
     if waveform.shape[0] > 1:
         waveform = waveform.mean(dim=0, keepdim=True)
-    else:
-        waveform = waveform  # already (1, T)
 
     # Resample if needed
     if sr != target_sr:
