@@ -9217,8 +9217,8 @@
     "test_patterns": 20
   },
   "pair_summary": {
-    "train": 0,
-    "val": 0,
-    "test": 0
+    "train": 1438,
+    "val": 216,
+    "test": 227
   }
 }

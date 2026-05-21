@@ -705,8 +705,8 @@
     }
   ],
   "pair_counts": {
-    "train": 0,
-    "val": 0,
-    "test": 0
+    "train": 1438,
+    "val": 216,
+    "test": 227
   }
 }
