@@ -128,10 +128,14 @@ class VarianceEngineModel(nn.Module):
         self.sample_rate: int = mg.sample_rate                    # 32000
         self.n_q: int = mg.lm.n_q                                 # 4 codebooks
         self.card: int = mg.lm.card                               # vocab per codebook (2048)
-        # EnCodec encoder output dimension (channels before quantisation)
-        self.d_encodec: int = self.compression_model.encoder.dimension  # 128
-        # MusicGen transformer hidden dimension
-        self.d_model: int = mg.lm.transformer.dim                 # 1024
+
+        # MusicGen transformer hidden dimension — derive from output projection
+        # lm.linears[k]: nn.Linear(d_model, card), so in_features == d_model
+        self.d_model: int = mg.lm.linears[0].in_features          # 1024 for medium
+
+        # EnCodec encoder output dimension — try known attribute paths, then dummy pass
+        # (must be after sample_rate and compression_model are set)
+        self.d_encodec: int = self._infer_encodec_dim()
 
         # ------------------------------------------------------------------
         # 3. Audio embedding conditioner — replaces text/melody conditioning
@@ -180,6 +184,32 @@ class VarianceEngineModel(nn.Module):
         print_parameter_summary(self, "VarianceEngine (full model)")
         print_parameter_summary(self.conditioner, "AudioEmbeddingConditioner")
         print_parameter_summary(self.transformer, "Transformer (after LoRA)")
+
+    # ------------------------------------------------------------------
+    # Dimension inference helpers
+    # ------------------------------------------------------------------
+
+    def _infer_encodec_dim(self) -> int:
+        """Infer EnCodec encoder output channels across audiocraft versions.
+
+        audiocraft does not expose a stable public attribute for this.
+        We try known paths in order and fall back to a dummy forward pass
+        which is the most robust approach.
+        """
+        # Try known attribute paths
+        for attr in ("dimension", "output_dim", "d_model"):
+            val = getattr(self.compression_model.encoder, attr, None)
+            if isinstance(val, int):
+                return val
+
+        # Fall back: run a 1-second dummy input through the encoder
+        dummy = torch.zeros(1, 1, self.sample_rate, device=next(
+            self.compression_model.parameters()).device)
+        with torch.no_grad():
+            enc_out = self.compression_model.encoder(dummy)
+        dim = enc_out.shape[1]  # (B, D, T) → D
+        print(f"  Inferred EnCodec encoder dim via dummy pass: {dim}")
+        return dim
 
     # ------------------------------------------------------------------
     # Encoding helpers
