@@ -207,7 +207,7 @@ class CheckpointManager:
                 "conditioner_state": model.conditioner.state_dict(),
                 "lora_state": {
                     k: v for k, v in model.transformer.state_dict().items()
-                    if "lora_" in k
+                    if "lora_A" in k or "lora_B" in k
                 },
                 "optimizer_state": optimizer.state_dict(),
                 "scheduler_state": scheduler.state_dict(),

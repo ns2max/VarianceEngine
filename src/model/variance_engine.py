@@ -170,9 +170,9 @@ class VarianceEngineModel(nn.Module):
         self.transformer = apply_lora(
             self.transformer,
             rank=lora_rank,
-            lora_alpha=lora_rank * 2,
+            lora_alpha=float(lora_rank * 2),
             lora_dropout=0.05,
-            target_modules=target_modules,
+            target_suffixes=target_modules,
         )
 
         print_parameter_summary(self, "VarianceEngine (full model)")
@@ -448,24 +448,16 @@ class VarianceEngineModel(nn.Module):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        trainable_state = {
-            k: v for k, v in self.state_dict().items()
-            if any(
-                k.startswith(prefix)
-                for prefix in ("conditioner.projection", "conditioner.norm",
-                               "transformer.base_model.model")  # LoRA weights via PEFT
-            ) and "lora_" in k or k.startswith("conditioner.")
+        # LoRA weights are named *.lora_A.weight / *.lora_B.weight inside transformer
+        lora_state = {
+            k: v for k, v in self.transformer.state_dict().items()
+            if "lora_A" in k or "lora_B" in k
         }
-
-        # Include full conditioner state
-        conditioner_state = {
-            f"conditioner.{k}": v
-            for k, v in self.conditioner.state_dict().items()
-        }
+        conditioner_state = self.conditioner.state_dict()
 
         torch.save(
             {
-                "trainable_weights": trainable_state,
+                "lora": lora_state,
                 "conditioner": conditioner_state,
                 "config": {
                     "d_encodec": self.d_encodec,
@@ -491,16 +483,9 @@ class VarianceEngineModel(nn.Module):
         checkpoint = torch.load(checkpoint_path, map_location=device)
         model = cls(musicgen_name=musicgen_name, lora_rank=lora_rank, device=device)
 
-        # Load conditioner weights
-        conditioner_state = {
-            k.replace("conditioner.", ""): v
-            for k, v in checkpoint["conditioner"].items()
-        }
-        model.conditioner.load_state_dict(conditioner_state, strict=False)
-
-        # Load LoRA weights
-        missing, unexpected = model.load_state_dict(
-            checkpoint["trainable_weights"], strict=False
+        model.conditioner.load_state_dict(checkpoint["conditioner"], strict=True)
+        missing, unexpected = model.transformer.load_state_dict(
+            checkpoint["lora"], strict=False
         )
         if unexpected:
             print(f"  Warning: unexpected keys in checkpoint: {unexpected[:5]}")
