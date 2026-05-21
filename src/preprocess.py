@@ -207,7 +207,7 @@ def preprocess_file(
     The write uses soundfile backend (via torchaudio) with 16-bit PCM output
     for compatibility with downstream audio tools.
     """
-    waveform, sr = torchaudio.load(src_path)
+    waveform, sr = torchaudio.load(src_path, backend="soundfile")
 
     original_duration_s = waveform.shape[-1] / sr
     peak_before = float(waveform.abs().max())
@@ -337,11 +337,13 @@ def generate_splits(
     }
 
 
-def build_split_pairs(pairs: list[dict], splits: dict, preprocessed_dir: Path) -> dict:
+def build_split_pairs(pairs: list[dict], splits: dict) -> dict:
     """Map each split's patterns to their (gt_path, var_path) pairs.
 
-    Returns a dict with 'train', 'val', 'test', each a list of pair dicts
-    pointing to preprocessed file paths.
+    pairs is already filtered to retained files (Step 4). No filesystem
+    existence check here — trust the upstream filter.
+
+    Returns a dict with 'train', 'val', 'test', each a list of pair dicts.
     """
     def _pattern_key(p):
         return (p["artist_id"], p["pattern_id"])
@@ -354,25 +356,12 @@ def build_split_pairs(pairs: list[dict], splits: dict, preprocessed_dir: Path) -
 
     for pair in pairs:
         key = (pair["artist_id"], pair["pattern_id"])
-        gt_dst = preprocessed_dir / Path(pair["gt_filepath"]).name
-        var_dst = preprocessed_dir / Path(pair["var_filepath"]).name
-
-        # Only include if both files were retained (exist in preprocessed dir)
-        if not gt_dst.exists() or not var_dst.exists():
-            continue
-
-        entry = {
-            **pair,
-            "gt_preprocessed": str(gt_dst),
-            "var_preprocessed": str(var_dst),
-        }
-
         if key in train_set:
-            split_pairs["train"].append(entry)
+            split_pairs["train"].append(pair)
         elif key in val_set:
-            split_pairs["val"].append(entry)
+            split_pairs["val"].append(pair)
         elif key in test_set:
-            split_pairs["test"].append(entry)
+            split_pairs["test"].append(pair)
 
     return split_pairs
 
@@ -493,7 +482,7 @@ def main(
     # ------------------------------------------------------------------
     print("\n[5/6] Generating train/val/test splits...")
     splits = generate_splits(retained_stats, seed=split_seed)
-    split_pairs = build_split_pairs(valid_pairs, splits, output_dir)
+    split_pairs = build_split_pairs(valid_pairs, splits)
 
     splits["pair_counts"] = {
         "train": len(split_pairs["train"]),
