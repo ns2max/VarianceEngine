@@ -1,0 +1,66 @@
+# VarianceEngine — Training Configuration
+# Pipeline stage: Step 6 (see PIPELINE.md)
+# All hyperparameters in one place for reproducibility.
+# Pass to train.py via: python src/train.py --config configs/train_config.yaml
+
+# --- Paths ---
+data:
+  split_pairs_path: "outputs/split_pairs.json"
+  preprocessed_dir: "preprocessed/"
+  output_dir: "checkpoints/"
+  log_dir: "logs/"
+
+# --- Model ---
+model:
+  musicgen_name: "facebook/musicgen-medium"
+  lora_rank: 32
+  conditioner_dropout: 0.1
+
+# --- Audio ---
+audio:
+  sample_rate: 32000
+  max_duration_s: 15.0          # Files > 15s get random crop (Step 2.5 decision)
+  encodec_frame_rate: 50        # EnCodec frames per second at 32kHz
+  # Hop size in samples = sample_rate / frame_rate = 640
+
+# --- Training ---
+training:
+  n_epochs: 100
+  batch_size: 4                 # Per-GPU batch size on RTX 4090 (24 GB VRAM)
+  grad_accum_steps: 4           # Effective batch size = 4 × 4 = 16
+  max_grad_norm: 1.0            # Gradient clipping norm
+
+  # Dual learning rates: conditioner (new, random init) vs LoRA (pre-trained)
+  lr_conditioner: 1.0e-3        # AudioEmbeddingConditioner projection + norm
+  lr_lora: 1.0e-4               # LoRA adapter weights in transformer attention
+  weight_decay: 0.01
+
+  # Cosine LR schedule with linear warmup
+  warmup_steps: 500             # ~0.35 epochs at 1438 pairs / effective batch 16
+  # Total steps computed at runtime from n_epochs and dataset size
+
+  # Mixed precision
+  precision: "bf16"             # RTX 4090 supports bf16 natively; more stable than fp16
+
+  # Gradient checkpointing — reduces VRAM at ~30% compute cost
+  gradient_checkpointing: true
+
+  # Checkpointing
+  save_every_steps: 500
+  keep_last_n_checkpoints: 3
+
+  # Early stopping
+  early_stopping_patience: 5   # Val evaluations without improvement
+
+  # Validation frequency
+  val_every_steps: 200          # Evaluate on val set every N steps
+
+# --- Reproducibility ---
+seed: 42
+
+# --- Logging ---
+logging:
+  use_wandb: true
+  wandb_project: "VarianceEngine"
+  wandb_entity: null            # Set to your W&B username/team
+  log_every_steps: 10

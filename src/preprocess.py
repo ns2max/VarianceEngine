@@ -56,8 +56,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import librosa
 import soundfile as sf
-import torchaudio
 import torchaudio.functional as F
 import torch
 from tqdm import tqdm
@@ -208,20 +208,14 @@ def preprocess_file(
     The write uses soundfile backend (via torchaudio) with 16-bit PCM output
     for compatibility with downstream audio tools.
     """
-    # Use soundfile directly to avoid torchaudio backend issues (torchcodec
-    # became the default in torchaudio >=2.4 and may not be installed).
-    audio_np, sr = sf.read(src_path, dtype="float32", always_2d=False)
-    if audio_np.ndim == 1:
-        waveform = torch.from_numpy(audio_np).unsqueeze(0)   # (1, T)
-    else:
-        waveform = torch.from_numpy(audio_np.T)              # (C, T)
+    # librosa.load confirmed working on this dataset (used in Step 1).
+    # Loads as float32 in [-1, 1], downmixes to mono automatically.
+    # sr=None preserves native sample rate.
+    audio_np, sr = librosa.load(src_path, sr=None, mono=True)
+    waveform = torch.from_numpy(audio_np).unsqueeze(0)  # (1, T)
 
     original_duration_s = waveform.shape[-1] / sr
     peak_before = float(waveform.abs().max())
-
-    # Ensure mono (mix down if multi-channel)
-    if waveform.shape[0] > 1:
-        waveform = waveform.mean(dim=0, keepdim=True)
 
     # Resample if needed
     if sr != target_sr:
@@ -245,7 +239,9 @@ def preprocess_file(
         tmp_path = tmp.name
 
     try:
-        torchaudio.save(tmp_path, waveform, target_sr, encoding="PCM_S", bits_per_sample=16)
+        # soundfile.write expects (T,) for mono or (T, C) for multi-channel
+        audio_out = waveform.squeeze(0).numpy()
+        sf.write(tmp_path, audio_out, target_sr, subtype="PCM_16")
         os.replace(tmp_path, dst_path)
     except Exception:
         if os.path.exists(tmp_path):
@@ -434,13 +430,13 @@ def main(
     process_results = []
     errors = []
 
-    # Note: torchaudio operations are not safely picklable for
-    # ProcessPoolExecutor on all platforms; sequential loop used here.
-    # On the server, increase throughput by splitting the file list and
-    # running multiple preprocess.py instances with --subset flags (see --help).
+    # Reconstruct source path from data_dir + filename only.
+    # The absolute filepath stored in dataset_stats.json may differ from the
+    # actual server path (recorded on a different machine or working directory).
+    # Using Path(s["filepath"]).name is safe because dopp/ is a flat directory.
     for s in tqdm(retained_stats, unit="file"):
-        src = s["filepath"]
-        dst = output_dir / Path(src).name
+        src = data_dir / Path(s["filepath"]).name
+        dst = output_dir / Path(s["filepath"]).name
         try:
             result = preprocess_file(src, str(dst), target_sr=target_sr, peak_dbfs=peak_dbfs)
             process_results.append(result)
@@ -466,18 +462,19 @@ def main(
             row["var_version_id"] = int(row["var_version_id"])
             pairs.append(row)
 
-    retained_paths = {str(output_dir / Path(s["filepath"]).name) for s in retained_stats}
+    # Use filenames only — absolute paths in stats.json may not match server
+    retained_filenames = {Path(s["filepath"]).name for s in retained_stats}
 
     # Filter pairs: both GT and variation must be retained
     valid_pairs = []
     for p in pairs:
-        gt_dst = str(output_dir / Path(p["gt_filepath"]).name)
-        var_dst = str(output_dir / Path(p["var_filepath"]).name)
-        if gt_dst in retained_paths and var_dst in retained_paths:
+        gt_name = Path(p["gt_filepath"]).name
+        var_name = Path(p["var_filepath"]).name
+        if gt_name in retained_filenames and var_name in retained_filenames:
             valid_pairs.append({
                 **p,
-                "gt_preprocessed": gt_dst,
-                "var_preprocessed": var_dst,
+                "gt_preprocessed": str(output_dir / gt_name),
+                "var_preprocessed": str(output_dir / var_name),
             })
 
     print(f"      Valid pairs after filtering: {len(valid_pairs)} / {len(pairs)}")
