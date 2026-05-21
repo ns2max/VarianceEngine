@@ -1,0 +1,39 @@
+{
+  "total_files": 2276,
+  "valid_files": 2276,
+  "error_files": 0,
+  "n_artists": 20,
+  "n_patterns": 176,
+  "n_gt_files": 176,
+  "n_variation_files": 2100,
+  "n_pairs": 2100,
+  "duration": {
+    "min_s": 0.603,
+    "max_s": 25.883,
+    "mean_s": 5.191,
+    "std_s": 2.809,
+    "median_s": 4.698
+  },
+  "versions_per_pattern": {
+    "min": 2,
+    "max": 31,
+    "mean": 11.93,
+    "std": 5.16
+  },
+  "peak_amplitude": {
+    "min": 0.032,
+    "max": 1.0,
+    "mean": 0.4043,
+    "clipped_files": 70
+  },
+  "chroma_similarity_gt_vs_variation": {
+    "mean": 0.9555,
+    "std": 0.0757,
+    "min": 0.3358,
+    "max": 0.9998,
+    "median": 0.9813,
+    "pct_below_0.7": 0.021,
+    "pct_above_0.9": 0.8929
+  },
+  "errors": []
+}
