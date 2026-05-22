@@ -12,10 +12,12 @@ Usage
     python src/train.py --config configs/train_config.yaml \\
         training.batch_size=2 training.grad_accum_steps=8
 
-Execution model
----------------
-Single-GPU training on RTX 4090 (24 GB VRAM).
-RTX 4080 (16 GB) can be used with batch_size=2, grad_accum_steps=8.
+Hardware
+--------
+Server: RTX 4090 (24 GB, cuda:0) + RTX 3090 (24 GB, cuda:1).
+DataParallel splits each batch across both GPUs. The transformer is wrapped
+in nn.DataParallel; compression_model and conditioner remain on cuda:0 as
+they are called outside the parallelised forward path.
 
 Mixed precision (bf16):
     RTX 4090 has native bf16 support. bf16 is more numerically stable than

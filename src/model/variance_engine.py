@@ -44,6 +44,32 @@ Inference
 Nucleus sampling (top-p=0.9) with per-variation random seed. Temperature
 is varied uniformly across N requested variations to produce a spectrum of
 variation magnitudes (see PIPELINE.md §8).
+
+Engineering notes (implementation issues resolved during development)
+---------------------------------------------------------------------
+1. MusicGen is NOT an nn.Module — it is a high-level wrapper class. Calling
+   mg.parameters() raises AttributeError. Parameters must be accessed via
+   mg.lm (the language model, an nn.Module) and mg.compression_model
+   (EnCodec, an nn.Module) separately.
+
+2. StreamingTransformer has no stable public `.dim` attribute across audiocraft
+   versions. d_model is derived from mg.lm.linears[0].in_features — the output
+   projection maps d_model → card, so in_features always equals d_model.
+
+3. EnCodec encoder output dimension (d_encodec) has no stable public attribute.
+   Discovered via attribute probing (tries 'dimension', 'output_dim', 'd_model')
+   then a dummy forward pass fallback.
+
+4. EnCodec SEANetEncoder contains an LSTM whose CUDA kernel
+   (_thnn_fused_lstm_cell_cuda) does not support bfloat16. All calls to the
+   encoder are wrapped in autocast(enabled=False) + .float() to force fp32,
+   regardless of the outer training precision context.
+
+5. LoRA target discovery: audiocraft's StreamingMultiheadAttention uses a fused
+   in_proj (combined QKV projection) not separate q_proj/k_proj/v_proj.
+   Discovery matched only 'out_proj' — 96 output projection layers are adapted
+   (rank=32, ~9.4M trainable params). This is documented as a limitation in
+   the paper; an in_proj ablation is included in Step 7.3.
 """
 
 from __future__ import annotations
@@ -58,7 +84,6 @@ import torch.nn.functional as F
 from torch import Tensor
 
 from audiocraft.models import MusicGen
-from audiocraft.modules.conditioners import ConditioningAttributes
 
 from .conditioning import AudioEmbeddingConditioner
 from .lora_utils import apply_lora, get_lora_target_modules, print_parameter_summary

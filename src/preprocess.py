@@ -35,11 +35,18 @@ Usage:
 
 Design notes
 ------------
-- torchaudio is used for resampling (sinc interpolation) because it is the
-  library used in the training pipeline, ensuring identical audio loading
-  behaviour between preprocessing and training.
-- librosa is NOT used here to avoid any subtle resampling differences between
-  the two libraries at training time.
+- Audio loading uses librosa.load (sr=None, mono=True). torchaudio.load was
+  the original choice (matching the training pipeline), but torchaudio 2.3.0
+  defaulted to the torchcodec backend which failed on the server environment
+  with a "System error" when loading WAV files. librosa.load with the
+  soundfile backend is reliable across platforms and returns float32 in [-1, 1]
+  consistent with MusicGen's internal audio handling.
+- torchaudio.functional.resample is still used for resampling (sinc
+  interpolation). This is a signal processing function with no backend
+  dependency — it operates on a torch.Tensor directly.
+- soundfile (sf.write) is used for writing preprocessed WAVs. torchaudio.save
+  also failed with the torchcodec backend; soundfile.write has no backend
+  dependency and writes PCM_16 WAV reliably.
 - All file writes are atomic: files are written to a temp path and renamed on
   success, preventing partial writes from corrupting the output directory.
 - Random seed for train/val/test split is fixed and recorded in splits.json
@@ -198,15 +205,18 @@ def preprocess_file(
 
     Implementation notes
     --------------------
-    torchaudio.load returns a float32 tensor normalised to [-1, 1] for 16-bit
-    PCM, consistent with MusicGen's internal audio handling.
+    librosa.load is used for loading (not torchaudio.load). torchaudio 2.3.0
+    defaulted to the torchcodec backend on the server and raised a "System
+    error" when loading standard WAV files. librosa.load with the soundfile
+    backend is platform-independent and returns float32 normalised to [-1, 1]
+    for 16-bit PCM — identical to what torchaudio would have returned.
 
-    Resampling uses sinc interpolation (the torchaudio default) which is
-    the standard anti-aliased upsampling method and avoids aliasing artifacts
-    that would occur with linear or nearest-neighbour interpolation.
+    Resampling uses torchaudio.functional.resample (sinc interpolation).
+    This is a pure tensor operation with no backend dependency.
 
-    The write uses soundfile backend (via torchaudio) with 16-bit PCM output
-    for compatibility with downstream audio tools.
+    Writing uses soundfile.write (PCM_16) rather than torchaudio.save, which
+    also failed with the torchcodec backend. soundfile has no backend dependency
+    and writes standard WAV reliably.
     """
     # librosa.load confirmed working on this dataset (used in Step 1).
     # Loads as float32 in [-1, 1], downmixes to mono automatically.
