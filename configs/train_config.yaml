@@ -13,8 +13,8 @@ data:
 # --- Model ---
 model:
   musicgen_name: "facebook/musicgen-medium"
-  lora_rank: 32
-  conditioner_dropout: 0.1
+  lora_rank: 64
+  conditioner_dropout: 0.05
 
 # --- Audio ---
 audio:

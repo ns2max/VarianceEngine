@@ -111,33 +111,47 @@ class LoRALinear(nn.Module):
 # ---------------------------------------------------------------------------
 
 # Name suffixes that identify attention projection layers across audiocraft versions.
-_ATTN_SUFFIXES = {"q_proj", "k_proj", "v_proj", "out_proj", "in_proj"}
+# Covers: standard HuggingFace names, fused QKV (in_proj), and audiocraft-specific names.
+_ATTN_SUFFIXES = {"q_proj", "k_proj", "v_proj", "out_proj", "in_proj", "q", "k", "v"}
+
+# Path fragments that identify attention blocks in audiocraft's StreamingTransformer.
+# Expanded to cover both self-attention and cross-attention naming conventions.
+_ATTN_PATH_FRAGMENTS = {"self_attn", "cross_attention", "attn"}
 
 
 def get_lora_target_modules(model: nn.Module) -> list[str]:
     """Return unique name suffixes of attention Linear layers in the model.
 
     Walks all named modules, collects the suffix (last dotted component) of
-    any nn.Linear whose name contains 'self_attn' or 'cross_attention' and
-    whose suffix is in the known attention projection set.
+    any nn.Linear whose path contains an attention block name and whose suffix
+    is in the known attention projection set.
 
-    Falls back to any Linear inside self_attn/cross_attention if none found.
+    Falls back to any Linear inside any attention block if none found via
+    the primary set.
+
+    Prints all discovered attention layers for inspection — check the output
+    to verify the correct layers are being targeted.
     """
     found: set[str] = set()
 
+    print("  Scanning transformer for attention Linear layers:")
     for name, module in model.named_modules():
         if not isinstance(module, nn.Linear):
             continue
-        in_attn = "self_attn" in name or "cross_attention" in name
+        in_attn = any(frag in name for frag in _ATTN_PATH_FRAGMENTS)
         suffix  = name.split(".")[-1]
-        if in_attn and suffix in _ATTN_SUFFIXES:
-            found.add(suffix)
+        if in_attn:
+            print(f"    {'[TARGET]' if suffix in _ATTN_SUFFIXES else '[SKIP]  '} "
+                  f"{name}  ({module.in_features}->{module.out_features})")
+            if suffix in _ATTN_SUFFIXES:
+                found.add(suffix)
 
     if not found:
-        # Fallback: any Linear inside attention blocks
+        # Fallback: any Linear inside any attention block
+        print("  Warning: no suffixes matched _ATTN_SUFFIXES. Using fallback.")
         for name, module in model.named_modules():
             if isinstance(module, nn.Linear):
-                if "self_attn" in name or "cross_attention" in name:
+                if any(frag in name for frag in _ATTN_PATH_FRAGMENTS):
                     found.add(name.split(".")[-1])
 
     return sorted(found)
