@@ -3,8 +3,5 @@ APPROACHES.md
 PIPELINE.md
 dopp/
 preprocessed/
+wandb/
 checkpoints/
-outputs/
-logs/
-*.pt
-*.pth
