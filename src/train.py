@@ -371,6 +371,7 @@ def train(cfg: TrainConfig) -> None:
     if cfg.use_wandb:
         try:
             import wandb
+            wandb.login(key=os.environ.get("WANDB_API_KEY"))
             wandb.init(
                 project=cfg.wandb_project,
                 entity=cfg.wandb_entity,
