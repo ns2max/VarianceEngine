@@ -118,6 +118,12 @@ _ATTN_SUFFIXES = {"q_proj", "k_proj", "v_proj", "out_proj", "in_proj", "q", "k",
 # Expanded to cover both self-attention and cross-attention naming conventions.
 _ATTN_PATH_FRAGMENTS = {"self_attn", "cross_attention", "attn"}
 
+# FFN layer suffixes to also adapt with LoRA.
+# audiocraft StreamingTransformer FFN: linear1 (d_model→4×d_model) + linear2 (4×d_model→d_model).
+# Adapting FFN gives the model capacity to learn audio variation distribution
+# even though QKV attention weights are raw parameters and cannot be LoRA'd.
+_FFN_SUFFIXES = {"linear1", "linear2"}
+
 
 def get_lora_target_modules(model: nn.Module) -> list[str]:
     """Return unique name suffixes of attention Linear layers in the model.
@@ -153,6 +159,17 @@ def get_lora_target_modules(model: nn.Module) -> list[str]:
             if isinstance(module, nn.Linear):
                 if any(frag in name for frag in _ATTN_PATH_FRAGMENTS):
                     found.add(name.split(".")[-1])
+
+    # Always include FFN layers
+    ffn_found: set[str] = set()
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Linear):
+            suffix = name.split(".")[-1]
+            if suffix in _FFN_SUFFIXES:
+                ffn_found.add(suffix)
+    if ffn_found:
+        print(f"  FFN layers found: {sorted(ffn_found)}")
+        found |= ffn_found
 
     return sorted(found)
 
@@ -218,7 +235,8 @@ def apply_lora(
             continue
         suffix = full_name.split(".")[-1]
         in_attn = "self_attn" in full_name or "cross_attention" in full_name
-        if suffix in target_set and in_attn:
+        in_ffn  = suffix in _FFN_SUFFIXES
+        if suffix in target_set and (in_attn or in_ffn):
             # Find parent
             parts = full_name.split(".")
             parent = model
