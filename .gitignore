@@ -5,3 +5,7 @@ dopp/
 preprocessed/
 wandb/
 checkpoints/
+__pycache__/
+*.pyc
+outputs/
+logs/
