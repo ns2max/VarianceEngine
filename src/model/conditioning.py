@@ -82,12 +82,26 @@ class AudioEmbeddingConditioner(nn.Module):
         for p in self.encoder.parameters():
             p.requires_grad_(False)
 
-        # Learned projection: EnCodec dim → transformer dim.
-        # Linear + LayerNorm stabilises training of randomly-initialised
-        # projection weights against the pre-trained encoder outputs.
-        self.projection = nn.Linear(d_encodec, d_model, bias=True)
-        self.norm = nn.LayerNorm(d_model)
-        self.dropout = nn.Dropout(p=dropout)
+        # MLP projection: EnCodec dim → hidden → transformer dim.
+        #
+        # Upgraded from single Linear to two-layer MLP with GELU activation.
+        # Rationale: the frozen cross-attention W_k and W_v were pre-trained on
+        # T5 text embeddings (1024-dim, specific statistical distribution). Our
+        # audio embeddings from EnCodec (128-dim) are in a completely different
+        # distribution. A single linear projection (128→1536) cannot reshape the
+        # distribution enough for the frozen W_k/W_v to extract useful features.
+        # A two-layer MLP with a hidden bottleneck can learn a non-linear mapping
+        # that better aligns audio embeddings with the text-embedding distribution
+        # the cross-attention attention mechanism was trained on.
+        #
+        # Hidden dim = d_model (1536): keeps the intermediate representation in
+        # the same space as the transformer, avoiding an information bottleneck.
+        d_hidden = d_model
+        self.proj_in  = nn.Linear(d_encodec, d_hidden, bias=True)
+        self.act      = nn.GELU()
+        self.proj_out = nn.Linear(d_hidden, d_model, bias=True)
+        self.norm     = nn.LayerNorm(d_model)
+        self.dropout  = nn.Dropout(p=dropout)
 
     def forward(self, gt_audio: Tensor) -> Tensor:
         """Encode GT audio to cross-attention conditioning context.
@@ -111,8 +125,10 @@ class AudioEmbeddingConditioner(nn.Module):
         # (B, T_frames, D_enc)
         enc = enc.transpose(1, 2)
 
-        # Project to transformer dimension
-        cond = self.projection(enc)   # (B, T_frames, D_model)
+        # MLP projection: EnCodec dim → d_model
+        cond = self.proj_in(enc)    # (B, T_frames, D_hidden)
+        cond = self.act(cond)
+        cond = self.proj_out(cond)  # (B, T_frames, D_model)
         cond = self.norm(cond)
         cond = self.dropout(cond)
 
