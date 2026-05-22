@@ -1,0 +1,22 @@
+{
+  "input": "preprocessed/40_0_0.wav",
+  "checkpoint": "checkpoints/best.pt",
+  "musicgen_name": "facebook/musicgen-medium",
+  "lora_rank": 32,
+  "n_variations": 5,
+  "top_p": 0.9,
+  "temperature_min": 0.8,
+  "temperature_max": 1.2,
+  "seed": 42,
+  "max_new_tokens": 508,
+  "input_duration_s": 9.172,
+  "checkpoint_step": 1600,
+  "checkpoint_val_loss": 4.519487628230342,
+  "outputs": [
+    "generated/40_0_0_var_001.wav",
+    "generated/40_0_0_var_002.wav",
+    "generated/40_0_0_var_003.wav",
+    "generated/40_0_0_var_004.wav",
+    "generated/40_0_0_var_005.wav"
+  ]
+}
